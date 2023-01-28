@@ -1,0 +1,30 @@
+{
+  "name": "jsplumb",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "axios": "^0.20.0",
+    "core-js": "^3.6.5",
+    "element-ui": "^2.14.1",
+    "js-cookie": "^2.2.1",
+    "normalize.css": "^8.0.1",
+    "vue": "^2.6.11",
+    "vue-router": "^3.5.3"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^4.5.0",
+    "@vue/cli-service": "^4.5.0",
+    "node-sass": "^4.14.1",
+    "sass-loader": "^10.0.3",
+    "vue-template-compiler": "^2.6.11",
+    "@types/eslint": "^7.28.0",
+    "@vue/cli-plugin-eslint": "^4.5.13",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.0.0",
+    "eslint-plugin-vue": "^7.18.0"
+  }
+}

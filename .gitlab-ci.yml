@@ -1,0 +1,46 @@
+variables:
+  DOCKER_HUB_ADDRESS: hub.dev.laningtech.net
+  DOCKER_HUB_PROJECT: apps
+  DOCKER_HUB_USER: admin
+  DOCKER_HUB_PASSWD: ling@0818
+  IMAGE_NAME: dcw-my-jsplumb
+  IMAGE_TAG: prod
+  NAMESPACE: dcw-my
+
+stages:
+  # - complite
+  - build
+  # - deploy
+# javascript:
+#   stage: complite
+#   image: hub.dev.laningtech.net/base_library/node:14.15.0
+#   only:
+#     - master
+#   retry:
+#     max: 2
+#   script:
+#     - /bin/sh build-code.sh
+#   artifacts:
+#     paths:
+#       - ./dist
+build:
+  stage: build
+  only:
+    - master
+  retry:
+    max: 2
+  before_script:
+    - docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWD} ${DOCKER_HUB_ADDRESS}
+  script:
+    - /bin/sh build-docker.sh
+    - docker push ${DOCKER_HUB_ADDRESS}/${DOCKER_HUB_PROJECT}/${IMAGE_NAME}
+
+deploy:
+  image: hub.dev.laningtech.net/base_library/ci-kubectl
+  stage: deploy
+  only:
+    - master
+  script:
+    # - cp /read_release.sh ./
+    # - /bin/bash read_release.sh
+    - /bin/bash deploy.sh
