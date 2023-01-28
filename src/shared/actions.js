@@ -8,7 +8,7 @@ class Actions {
     onGlobalStateChange: emptyAction,
     setGlobalState: emptyAction,
     getRouteInfo: emptyAction,
-    getUserInfo: emptyAction,
+    getUserInfo: emptyAction
   }
 
   setActions(actions) {
