@@ -2,6 +2,7 @@ const { name } = require('./package')
 const publicPath = '/child/jsplumb'
 
 module.exports = {
+  lintOnSave: false,
   publicPath,
   devServer: {
     proxy: {
@@ -13,14 +14,14 @@ module.exports = {
     },
     disableHostCheck: true,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': '*'
     }
   },
   configureWebpack: {
     output: {
       library: `${name}`,
       libraryTarget: 'umd',
-      jsonpFunction: `webpackJsonp_${name}`,
+      jsonpFunction: `webpackJsonp_${name}`
     },
     externals: {
       'vue': 'Vue',
@@ -29,12 +30,12 @@ module.exports = {
       'element-ui': 'ELEMENT'
     }
   },
-  chainWebpack(config){
+  chainWebpack(config) {
     config.module.rule('fonts')
       .use('url-loader')
       .loader('url-loader')
       .options({
-        limit: 4096, // Ð¡ÓÚ4kb½«»á±»´ò°ü³É base64
+        limit: 4096, // Ð¡ï¿½ï¿½4kbï¿½ï¿½ï¿½á±»ï¿½ï¿½ï¿½ï¿½ï¿½ base64
         fallback: {
           loader: 'file-loader',
           options: {
@@ -48,7 +49,7 @@ module.exports = {
       .use('url-loader')
       .loader('url-loader')
       .options({
-        limit: 4096, // Ð¡ÓÚ4kb½«»á±»´ò°ü³É base64
+        limit: 4096, // Ð¡ï¿½ï¿½4kbï¿½ï¿½ï¿½á±»ï¿½ï¿½ï¿½ï¿½ï¿½ base64
         fallback: {
           loader: 'file-loader',
           options: {

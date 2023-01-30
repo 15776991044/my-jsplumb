@@ -9,10 +9,14 @@ import permission from './directive/permission'
 import 'normalize.css/normalize.css' // a modern alternative to CSS resets
 
 import ElementUI from 'element-ui'
-// import 'element-ui/lib/theme-chalk/index.css' // ÔÚ index.html ÖÐÍ¨¹ý link ±êÇ©ÒýÈëÁË
+// import 'element-ui/lib/theme-chalk/index.css' // ï¿½ï¿½ index.html ï¿½ï¿½Í¨ï¿½ï¿½ link ï¿½ï¿½Ç©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 Vue.use(ElementUI)
 Vue.use(permission)
+
+import jsPlumb from 'jsplumb'
+
+Vue.prototype.$jsPlumb = jsPlumb.jsPlumb
 
 Vue.config.productionTip = false
 
@@ -30,12 +34,12 @@ function render(props) {
   router = new VueRouter({
     base: window.__POWERED_BY_QIANKUN__ ? '/jsplumb' : '/child/jsplumb',
     mode: 'history',
-    routes,
+    routes
   })
 
   instance = new Vue({
     router,
-    render: h => h(App),
+    render: h => h(App)
   }).$mount(container ? container.querySelector('#app') : '#app')
 }
 
