@@ -164,7 +164,7 @@ export default {
       const ins = this.jsPlumb
       const elem = document.getElementById(nodeId)
       console.log(ins, elem)
-      ins.makeSource(elem, {
+      ins.makeSource(nodeId, {
         filter: '.drag-dom',
         filterExclude: false,
         anchor: ['Perimeter', { anchorCount: 200, shape: 'Rectangle' }],
@@ -172,12 +172,12 @@ export default {
         maxConnections: 3
 
       })
-      ins.makeTarget(elem, {
+      ins.makeTarget(nodeId, {
         filter: '.drag-dom',
         filterExclude: false,
         anchor: ['Perimeter', { anchorCount: 200, shape: 'Rectangle' }],
         allowLoopback: false,
-        maxConnections: 3
+        maxConnections: -1
 
       })
       const subId = `menu-${item.nodeId}`
@@ -189,7 +189,7 @@ export default {
         filterExclude: false,
         anchor: ['Left', { anchorCount: 200, shape: 'Rectangle' }],
         allowLoopback: false,
-        maxConnections: 3
+        maxConnections: -1
 
       })
       ins.makeTarget(elem1, {
@@ -197,7 +197,7 @@ export default {
         filterExclude: false,
         anchor: ['Left', { anchorCount: 200, shape: 'Rectangle' }],
         allowLoopback: false,
-        maxConnections: 3
+        maxConnections: -1
 
       })
       // ins.addEndpoint(
