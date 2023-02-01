@@ -18,6 +18,10 @@ import jsPlumb from 'jsplumb'
 
 Vue.prototype.$jsPlumb = jsPlumb.jsPlumb
 
+import { deepClone, objIsEqual } from '@/utils/index.js'
+Vue.prototype.$deepClone = deepClone
+Vue.prototype.$objIsEqual = objIsEqual
+
 Vue.config.productionTip = false
 
 let instance = null

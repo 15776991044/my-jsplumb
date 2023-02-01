@@ -6,6 +6,7 @@ Vue.use(VueRouter)
 import Home from '@/views/home'
 import BaseJsplumb from '@/views/base-jsplumb'
 import JsplumbGroup from '@/views/jsplumb-group'
+import EditJsplumb from '@/views/edit-jsplumb'
 
 const routes = [
   {
@@ -22,6 +23,11 @@ const routes = [
     path: '/jsplumb-group',
     name: 'JsplumbGroup',
     component: JsplumbGroup
+  },
+  {
+    path: '/edit-jsplumb',
+    name: 'EditJsplumb',
+    component: EditJsplumb
   }
 ]
 
