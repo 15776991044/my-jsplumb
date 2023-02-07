@@ -7,6 +7,7 @@ import Home from '@/views/home'
 import BaseJsplumb from '@/views/base-jsplumb'
 import JsplumbGroup from '@/views/jsplumb-group'
 import EditJsplumb from '@/views/edit-jsplumb'
+import FlowDesigner from '@/views/flow-designer'
 
 const routes = [
   {
@@ -28,6 +29,11 @@ const routes = [
     path: '/edit-jsplumb',
     name: 'EditJsplumb',
     component: EditJsplumb
+  },
+  {
+    path: '/flow-designer',
+    name: 'FlowDesigner',
+    component: FlowDesigner
   }
 ]
 

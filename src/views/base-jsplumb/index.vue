@@ -61,19 +61,23 @@ export default {
         { name: '省公司虚拟专家组', nodeId: 'processDefineDiv_node_3' },
         { name: '分公司咨询组', nodeId: 'processDefineDiv_node_5' },
         { name: '咨询组', nodeId: 'processDefineDiv_node_6' },
-        { name: 'sub咨询组', nodeId: 'processDefineDiv_node_7' }
-        // { name: 'other咨询组', nodeId: 'processDefineDiv_node_9' }
+        { name: 'sub咨询组', nodeId: 'processDefineDiv_node_7' },
+        { name: 'other咨询组', nodeId: 'processDefineDiv_node_9' }
       ],
       connList: [
         { sourceNodeId: 'processDefineDiv_node_3', targetNodeId: 'processDefineDiv_node_5' },
         { sourceNodeId: 'processDefineDiv_node_3', targetNodeId: 'processDefineDiv_node_6' },
         { sourceNodeId: 'processDefineDiv_node_6', targetNodeId: 'processDefineDiv_node_7' },
+        { sourceNodeId: 'processDefineDiv_node_7', targetNodeId: 'processDefineDiv_node_6' },
+        { sourceNodeId: 'processDefineDiv_node_7', targetNodeId: 'processDefineDiv_node_7' },
         { sourceNodeId: 'processDefineDiv_node_3', targetNodeId: 'menu-processDefineDiv_node_7' }
       ]
     }
   },
   async mounted() {
     const Treelist = this.tranListToTreeData(this.nodeList, this.connList)
+    console.log('Treelist', Treelist)
+    return
     const len = Treelist.length
     const con = d3.select('#col2').node()
     const width = con.offsetWidth
