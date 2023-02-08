@@ -1,10 +1,10 @@
 <template>
   <div class="demo3">
-    <ToolsMenu ref="ToolsMenu" class="tools-menu">
-      <div class="tool-item">
+    <ToolsMenu ref="ToolsMenu" class="tools-menu" @setDragMenu="setDragMenu">
+      <div class="tool-item" :class="{active:!isConnect}">
         <div class="tool-item-icon" title="鼠标工具" @click="isConnect=false"><i class="el-icon-rank " /></div>
       </div>
-      <div class="tool-item">
+      <div class="tool-item" :class="{active:isConnect}">
         <i class="el-icon-sort tool-item-icon" title="连线工具" @click="isConnect=true" />
       </div>
     </ToolsMenu>
@@ -30,7 +30,30 @@
         />
       </div>
     </div>
-    <AttrPanel ref="AttrPanel" class="attr-panel" />
+    <!-- 编辑区 -->
+    <div class="attr-panel">
+      <div class="attr-from">
+        编辑节点 <br>
+        <div v-for="(item,key) in selectNode" :key="key">
+          <span class="item-label">{{ key }} ：</span>
+          {{ item }}
+          <el-input v-model="selectNode[key]" :disabled="key=='nodeId'" />
+        </div>
+        <el-button @click="handleCancelEdit">取消</el-button>
+        <el-button type="primary" @click="handleEdit">保存</el-button>
+      </div>
+      <div class="attr-from">
+        编辑连线 <br>
+        <div v-for="(item,key) in selectLine" :key="key">
+          <span class="item-label">{{ key }} ：</span>
+          <!-- {{ item }} -->
+          <el-input v-if="key=='label'" v-model="selectLine[key]" @input="handleEditLineLabel" />
+          <el-input v-else v-model="selectLine[key]" :disabled="true" @input="handleEditLineLabel" />
+        </div>
+        <el-button @click="handleCancelEditLine">取消</el-button>
+        <el-button type="primary" @click="handleEditLine">保存</el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -38,10 +61,10 @@
 import ToolsMenu from './components/ToolsMenu.vue'
 import NodeItem from './components/NodeItem.vue'
 import AttrPanel from './components/AttrPanel.vue'
-import { InstanceSetting, NodeSetting } from './config.js'
+import { InstanceSetting, NodeSetting, getUUID, connectorPaintStyle } from './config.js'
 
 export default {
-  components: { ToolsMenu, NodeItem, AttrPanel },
+  components: { ToolsMenu, NodeItem },
   data() {
     return {
       isConnect: false, // 连线/移动
@@ -56,7 +79,11 @@ export default {
       connList: [
         { sourceNodeId: 'processDefineDiv_node_3', targetNodeId: 'processDefineDiv_node_5', label: 'ceshi' },
         { sourceNodeId: 'processDefineDiv_node_3', targetNodeId: 'processDefineDiv_node_6' }
-      ]
+      ],
+      currentConnect: null, // 选中的线，jsPlumb对象
+      selectLine: {},
+      curDragMenu: {} // 背选中拖拽的菜单
+
     }
   },
   watch: {
@@ -70,9 +97,12 @@ export default {
     })
   },
   methods: {
+    setDragMenu(menuItem) {
+      this.curDragMenu = menuItem
+    },
     drop(event) {
       const temp = {
-        nodeId: this.getUUID(),
+        nodeId: getUUID(),
         name: '新元素',
         y: event.offsetY,
         x: event.offsetX
@@ -84,18 +114,6 @@ export default {
     },
     allowDrop(event) {
       event.preventDefault()
-    },
-    getUUID() {
-      var s = []
-      var hexDigits = '0123456789abcdef'
-      for (var i = 0; i < 36; i++) {
-        s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1)
-      }
-      s[14] = '4' // bits 12-15 of the time_hi_and_version field to 0010
-      s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1) // bits 6-7 of the clock_seq_hi_and_reserved to 01
-      s[8] = s[13] = s[18] = s[23] = '-'
-      var uuid = s.join('')
-      return uuid
     },
     initPlumb() {
       this.jPIns = this.$jsPlumb.getInstance({
@@ -137,7 +155,6 @@ export default {
         if (!isDrag && !isConnect) {
           isDrag == ins.toggleDraggable(nodeId)
         }
-        console.log('isDrag', isDrag, isConnect)
       })
     },
     // 初始化节点
@@ -158,11 +175,142 @@ export default {
         })
       }
     },
+    handleBeforeDrop(evt) {
+      console.log('handleBeforeDrop', evt)
+      const from = evt.sourceId
+      const to = evt.targetId
+
+      if (from === to) {
+        this.$message.error('不能连接自己')
+        return false
+      } if (this.hasLine(from, to)) {
+        this.$message.error('不能重复连线')
+        return false
+      }
+      // 回环没控制
+      return true
+    },
+    getLineItem(conn) {
+      const { sourceId, targetId } = conn || {}
+      let selectLine = {}
+      this.connList.forEach(line => {
+        const { sourceNodeId, targetNodeId } = line || {}
+        const from = sourceNodeId
+        const to = targetNodeId
+        if (sourceId == from && targetId == to) {
+          selectLine = { ...line, label: line.label || '' }
+        }
+      })
+      return selectLine
+    },
+    // 点击连线
+    handleSelectLine(conn) {
+      console.log('click', conn)
+      this.selectLine = this.getLineItem(conn)
+      if (this.currentConnect) {
+        this.currentConnect.setPaintStyle({ ...connectorPaintStyle })
+      }
+      this.currentConnect = conn
+    },
+    // 保存编辑线
+    handleEditLine() {
+      if (this.currentConnect) {
+        this.currentConnect.setPaintStyle({ ...connectorPaintStyle })
+      }
+      console.log('线', this.jPIns.getConnections())
+    },
+    // 取消编辑线
+    handleCancelEditLine() {
+      if (this.currentConnect) {
+        this.currentConnect.setPaintStyle({ ...connectorPaintStyle })
+      }
+      this.currentConnect = null
+      this.selectLine = {}
+    },
+    // 更改label同步到流程图里
+    handleEditLineLabel() {
+      const { label } = this.selectLine
+      this.currentConnect.setLabel({
+        label: label,
+        cssClass: `linkLabel`
+      })
+      // 更改线样式，恢复还给改回来
+      this.currentConnect.setPaintStyle({ stroke: '#0a0', outlineStroke: '#FCFD3C' })
+    },
+    // 选择要删除的连线
+    selectDeleLine(conn) {
+      const ins = this.jPIns
+      this.selectLine = this.getLineItem(conn)
+      this.currentConnect = conn
+      this.$nextTick(() => {
+        this.currentConnect.setPaintStyle({ stroke: '#0a0', outlineStroke: '#FCFD3C' })
+      })
+      this.$confirm('确定删除所点击的线吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.handleCancelEditLine()
+        ins.deleteConnection(conn)
+      }).catch(() => {
+      })
+    },
+    // 是否具有该线
+    hasLine(from, to) {
+      const ins = this.jPIns
+      const ins_conn_ist = ins.getConnections()
+      console.log('ins_conn_ist', ins_conn_ist)
+      return ins_conn_ist.some((item) => {
+        const { sourceId, targetId } = item
+        return (from == sourceId && to == targetId)
+      })
+    },
+    // 返回线的流程图对象conn
+    getLineConn(from, to) {
+      const ins = this.jPIns
+      const ins_conn_ist = ins.getConnections()
+      return ins_conn_ist.find((item) => {
+        const { sourceId, targetId } = item
+        return (from == sourceId && to == targetId)
+      })
+    },
+    // 连线事件
+    addLine(evt) {
+      console.log('evt', evt)
+      if (!this.loadEasyFlowFinish) return
+      const { sourceId, targetId } = evt || {}
+      const temp = {
+        sourceNodeId: sourceId,
+        targetNodeId: targetId,
+        label: '' }
+      this.connList.push(temp)
+      this.$nextTick(() => {
+        const conn = this.getLineConn(sourceId, targetId)
+        if (conn) {
+          this.handleSelectLine(conn)
+        }
+      })
+    },
+    handleConnectionDetached(evt) {
+      console.log('handleConnectionDetached', evt)
+    },
+    // 连线
     connectionAll() {
       const ins = this.jPIns
       ins.ready(() => { // 入口
         // 导入默认配置
         ins.importDefaults({ ...InstanceSetting, ...NodeSetting, Container: 'flowContent' })
+        // 增加移动事件
+        ins.bind('beforeDrop', this.handleBeforeDrop)
+        // 点击线
+        ins.bind('click', this.handleSelectLine)
+        // 双击线
+        ins.bind('dblclick', this.selectDeleLine)
+        // 连线,监听所有的连接事件
+        ins.bind('connection', this.addLine)
+        // 删除连线
+        ins.bind('connectionDetached', this.handleConnectionDetached)
+
         for (let i = 0; i < this.connList.length; i++) {
           const conn = this.connList[i]
           const { sourceNodeId, targetNodeId, label } = conn || {}
@@ -177,8 +325,12 @@ export default {
             })
           }
         }
+        this.$nextTick(function() {
+          this.loadEasyFlowFinish = true
+        })
       })
     }
+
   }
 }
 </script>
@@ -189,7 +341,12 @@ export default {
   border: 1px solid #ccc;
   border-radius: 6px;
   text-align: center;
+  &.active{
+  background: #f56c6c;
+
+  }
 }
+
 </style>
 <style scoped lang="scss">
 .demo3{
@@ -209,7 +366,7 @@ export default {
   width: 60%;
   height: 100%;
   border: 1px solid gray;
-  overflow: scroll;
+  overflow: hidden;
   margin-right:2%;
 }
 .attr-panel{
@@ -224,5 +381,14 @@ export default {
   overflow: scroll;
   box-sizing: border-box;
   position: relative;
+}
+.attr-from{
+  height:40vh;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.item-label{
+  display: inline-block;
+  min-width: 130px;
 }
 </style>

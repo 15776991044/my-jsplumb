@@ -41,7 +41,6 @@ export default {
       const dom = this.$refs.node
       const x = dom.offsetLeft
       const y = dom.offsetTop
-      console.log(x, y)
       this.$emit('changeNodeSite', {
         nodeId: this.node.id,
         x, y
@@ -53,7 +52,8 @@ export default {
 
 <style lang="scss" scoped>
 .node-item{
-  line-height: 40px;
+  padding:12px 10px;
+  line-height: 24px;
   background: #496def;
   position: absolute;
   color: #fff;
@@ -62,7 +62,7 @@ export default {
   text-align: center;
   cursor: move;
   width: 100px;
-  // user-select: none;
+  user-select: none;
 }
 .node-del{
   position: absolute;

@@ -7,17 +7,19 @@ export const InstanceSetting = {
   // Endpoints: [null, null],
   // EndpointOverlays: [],
   EndpointStyle: { fill: 'transparent', stroke: '#1565C0', radius: 4, strokeWidth: 1 },
-  MaxConnections: 3,
+  MaxConnections: -1,
   Connector: connType
 }
 // 基本连接线样式
-const connectorPaintStyle = {
+export const connectorPaintStyle = {
   strokeWidth: 4,
   stroke: '#61B7CF',
   joinstyle: 'round',
   fill: 'transparent',
   outlineColor: '#333',
-  outlineWidth: 10
+  outlineWidth: 10,
+  // outlineStroke: '#FCFD3C',
+  outlineStroke: 'transparent'
 }
 
 // 鼠标悬浮在连接线上的样式
@@ -41,7 +43,7 @@ export const NodeSetting = {
   // 端点的颜色样式
   hoverPaintStyle: { fill: 'blue' },
   connector: connType, // 设置连线样式
-  maxConnections: 3, // 设置连接点最多可以连接几条线
+  maxConnections: -1, // 设置连接点最多可以连接几条线
   connectorOverlays: [
     ['Arrow', {
       width: 10,
@@ -66,3 +68,15 @@ export const NodeSetting = {
   ]
 }
 
+export function getUUID() {
+  var s = []
+  var hexDigits = '0123456789abcdef'
+  for (var i = 0; i < 36; i++) {
+    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1)
+  }
+  s[14] = '4' // bits 12-15 of the time_hi_and_version field to 0010
+  s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1) // bits 6-7 of the clock_seq_hi_and_reserved to 01
+  s[8] = s[13] = s[18] = s[23] = '-'
+  var uuid = s.join('')
+  return uuid
+}

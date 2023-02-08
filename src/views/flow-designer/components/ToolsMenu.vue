@@ -9,7 +9,7 @@
     <div class="tool-card">
       <div class="card-header">节点</div>
       <div class="card-body">
-        <div v-for="(item,index) in nodeList" :key="index" draggable="true" class="tool-item">
+        <div v-for="(item,index) in nodeList" :key="index" draggable="true" class="tool-item" @dragstart="drag(item)">
           <div class="node-item" :class="item.class" />
           <div>{{ item.title }}</div>
         </div>
@@ -35,6 +35,11 @@ export default {
         title: '过程',
         type: ''
       }]
+    }
+  },
+  methods: {
+    drag(item) {
+      this.$emit('setDragMenu', item)
     }
   }
 }
@@ -69,6 +74,9 @@ export default {
   cursor: pointer;
   text-align: center;
   display: inline-block;
+  &.active{
+    color: #409eff;
+  }
 }
 .tool-item-icon{
   font-size: 50px;
