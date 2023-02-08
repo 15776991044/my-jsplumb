@@ -19,6 +19,7 @@
           v-for="item in nodeList"
           :id="`${item.nodeId}`"
           :key="item.nodeId"
+          :select-node="selectNode"
           :node="item"
           :style="{
             top: item.y + 'px',
@@ -36,11 +37,11 @@
         编辑节点 <br>
         <div v-for="(item,key) in selectNode" :key="key">
           <span class="item-label">{{ key }} ：</span>
-          {{ item }}
-          <el-input v-model="selectNode[key]" :disabled="key=='nodeId'" />
+          <!-- {{ item }} -->
+          <el-input v-model="selectNode[key]" :disabled="key=='nodeId'" @input="handleEditNodeLabel(key)" />
         </div>
-        <el-button @click="handleCancelEdit">取消</el-button>
-        <el-button type="primary" @click="handleEdit">保存</el-button>
+        <el-button @click="handleCancelEditNode">取消</el-button>
+        <el-button type="primary" @click="handleEditNode">保存</el-button>
       </div>
       <div class="attr-from">
         编辑连线 <br>
@@ -48,7 +49,7 @@
           <span class="item-label">{{ key }} ：</span>
           <!-- {{ item }} -->
           <el-input v-if="key=='label'" v-model="selectLine[key]" @input="handleEditLineLabel" />
-          <el-input v-else v-model="selectLine[key]" :disabled="true" @input="handleEditLineLabel" />
+          <el-input v-else v-model="selectLine[key]" :disabled="true" />
         </div>
         <el-button @click="handleCancelEditLine">取消</el-button>
         <el-button type="primary" @click="handleEditLine">保存</el-button>
@@ -60,7 +61,6 @@
 <script>
 import ToolsMenu from './components/ToolsMenu.vue'
 import NodeItem from './components/NodeItem.vue'
-import AttrPanel from './components/AttrPanel.vue'
 import { InstanceSetting, NodeSetting, getUUID, connectorPaintStyle } from './config.js'
 
 export default {
@@ -82,7 +82,8 @@ export default {
       ],
       currentConnect: null, // 选中的线，jsPlumb对象
       selectLine: {},
-      curDragMenu: {} // 背选中拖拽的菜单
+      curDragMenu: {}, // 背选中拖拽的菜单
+      selectNode: {} // 被选中的节点
 
     }
   },
@@ -97,6 +98,54 @@ export default {
     })
   },
   methods: {
+    editNode({ nodeId, x, y }) {
+      // 重复点击同一元素
+      if (this.selectNode.nodeId == nodeId) return
+      let selectNode = {}
+      this.nodeList.forEach(node => {
+        if (node.nodeId == nodeId) {
+          selectNode = { ...node, x, y }
+        }
+      })
+      console.log('selectNode', nodeId, x, y, selectNode)
+
+      this.selectNode = selectNode
+    },
+    deleteNode({ nodeId, x, y }) {
+      this.editNode({ nodeId, x, y })
+      this.$confirm('确定删除选节点吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        const ins = this.jPIns
+        // 点线通过jsPlumb的removeAllEndpoints方法注销
+        // ins.removeAllEndpoints(nodeId)
+        // 节点通过数据删掉
+        this.nodeList.forEach((item, index) => {
+          if (item.nodeId === nodeId) {
+            this.nodeList.splice(index, 1)
+          }
+        })
+        // 删除关于nodeId的节点、端点、线
+        ins.remove(nodeId)
+        this.selectNode = {}
+      }).catch(() => {
+      })
+    },
+    handleEditNodeLabel(prop) {
+      this.nodeList.forEach((item) => {
+        const { nodeId } = item || {}
+        if (this.selectNode.nodeId == nodeId) {
+          item[prop] = this.selectNode[prop]
+        }
+      })
+      this.$nextTick(() => {
+        const ins = this.jPIns
+        ins.repaintEverything()
+      })
+    },
+    handleEditNode() {},
     setDragMenu(menuItem) {
       this.curDragMenu = menuItem
     },
@@ -230,6 +279,12 @@ export default {
     // 更改label同步到流程图里
     handleEditLineLabel() {
       const { label } = this.selectLine
+      this.connList.forEach(line => {
+        const { sourceNodeId, targetNodeId } = line || {}
+        if (this.selectLine.sourceNodeId == sourceNodeId && this.selectLine.targetNodeId == targetNodeId) {
+          line = { ...line, label }
+        }
+      })
       this.currentConnect.setLabel({
         label: label,
         cssClass: `linkLabel`

@@ -2,10 +2,11 @@
   <div
     ref="node"
     class="node-item"
+    :class="{active:isActive}"
     @mouseenter="mouseEnter = true"
     @mouseleave="mouseEnter = false"
     @mouseup="changeNodeSite"
-    @click.stop="editNode(item)"
+    @click.stop="editNode()"
   >
     <div class="node-con">{{ node.name }}</div>
     <div class="node-del" @click.stop="deleteNode">
@@ -20,6 +21,10 @@ export default {
     node: {
       type: Object,
       default() { return {} }
+    },
+    selectNode: {
+      type: Object,
+      default() { return {} }
     }
   },
   data() {
@@ -27,24 +32,31 @@ export default {
       mouseEnter: false
     }
   },
+  computed: {
+    isActive() {
+      return this.node.nodeId == this.selectNode.nodeId
+    }
+  },
   methods: {
-    // 删除节点
-    deleteNode() {
-      this.$emit('deleteNode', this.node.id)
-    },
-    // 编辑节点
-    editNode() {
-      this.$emit('editNode', this.node.id)
-    },
-    // 鼠标移动后抬起
-    changeNodeSite() {
+    getCruTemp() {
       const dom = this.$refs.node
       const x = dom.offsetLeft
       const y = dom.offsetTop
-      this.$emit('changeNodeSite', {
-        nodeId: this.node.id,
-        x, y
-      })
+      return {
+        nodeId: this.node.nodeId, x, y
+      }
+    },
+    // 删除节点
+    deleteNode() {
+      this.$emit('deleteNode', this.getCruTemp())
+    },
+    // 编辑节点
+    editNode() {
+      this.$emit('editNode', this.getCruTemp())
+    },
+    // 鼠标移动后抬起
+    changeNodeSite() {
+      this.$emit('changeNodeSite', this.getCruTemp())
     }
   }
 }
@@ -63,6 +75,12 @@ export default {
   cursor: move;
   width: 100px;
   user-select: none;
+  word-break: break-all;
+  &.active{
+    background: #e6a23c;
+  }
+}
+.node-con{
 }
 .node-del{
   position: absolute;
