@@ -9,7 +9,7 @@
       </div>
     </ToolsMenu>
     <!-- 操作区 -->
-    <div class="draw-area">
+    <div v-if="easyFlowVisible" class="draw-area">
       <div
         id="flowContent"
         @drop="drop($event)"
@@ -34,6 +34,10 @@
     <!-- 编辑区 -->
     <div class="attr-panel">
       <div class="attr-from">
+        <el-button type="primary" @click="removeAll">清空</el-button>
+        <el-button type="primary" @click="loadJson">绘制</el-button>
+      </div>
+      <div class="attr-from">
         编辑节点 <br>
         <div v-for="(item,key) in selectNode" :key="key">
           <span class="item-label">{{ key }} ：</span>
@@ -41,7 +45,7 @@
           <el-input v-model="selectNode[key]" :disabled="key=='nodeId'" @input="handleEditNodeLabel(key)" />
         </div>
         <el-button @click="handleCancelEditNode">取消</el-button>
-        <el-button type="primary" @click="handleEditNode">保存</el-button>
+        <el-button type="primary" @click="handleEditNode">暂存编辑</el-button>
       </div>
       <div class="attr-from">
         编辑连线 <br>
@@ -52,7 +56,7 @@
           <el-input v-else v-model="selectLine[key]" :disabled="true" />
         </div>
         <el-button @click="handleCancelEditLine">取消</el-button>
-        <el-button type="primary" @click="handleEditLine">保存</el-button>
+        <el-button type="primary" @click="handleEditLine">暂存编辑</el-button>
       </div>
     </div>
   </div>
@@ -62,11 +66,17 @@
 import ToolsMenu from './components/ToolsMenu.vue'
 import NodeItem from './components/NodeItem.vue'
 import { InstanceSetting, NodeSetting, getUUID, connectorPaintStyle } from './config.js'
-
+const defaultTempData = {
+  nodeList: [],
+  connList: [],
+  currentConnect: null,
+  loadEasyFlowFinish: false
+}
 export default {
   components: { ToolsMenu, NodeItem },
   data() {
     return {
+      easyFlowVisible: true, // 控制画布销毁,重绘要销毁，要不bind事件会重复
       isConnect: false, // 连线/移动
       jPIns: null, // jsPlumb实例
       loadEasyFlowFinish: false, // 是否加载完毕
@@ -83,7 +93,8 @@ export default {
       currentConnect: null, // 选中的线，jsPlumb对象
       selectLine: {},
       curDragMenu: {}, // 背选中拖拽的菜单
-      selectNode: {} // 被选中的节点
+      selectNode: {}, // 被选中的节点
+      tempData: {}
 
     }
   },
@@ -98,6 +109,64 @@ export default {
     })
   },
   methods: {
+    removeAll() {
+      this.loadEasyFlowFinish = false
+      const ins = this.jPIns
+      // ins.ready(() => { // 入口
+      // // 增加移动事件
+      //   ins.unbind('beforeDrop', this.handleBeforeDrop)
+      //   // 点击线
+      //   ins.unbind('click', this.handleSelectLine)
+      //   // 双击线
+      //   ins.unbind('dblclick', this.selectDeleLine)
+      //   // 连线,监听所有的连接事件
+      //   ins.unbind('connection', this.addLine)
+      //   // 删除连线
+      //   ins.unbind('connectionDetached', this.handleConnectionDetached)
+      // })
+      for (let i = 0, len = this.nodeList.length; i < len; i++) {
+        const nodeId = this.nodeList[i].nodeId
+        ins.removeAllEndpoints(nodeId)// 删除divID所有端点
+        ins.remove(nodeId)
+      }
+      const nodeList = this.$deepClone(this.nodeList)
+      const connList = this.$deepClone(this.connList)
+      this.tempData = { ...defaultTempData, nodeList, connList }
+      this.nodeList = []
+      this.$nextTick(() => {
+        for (const key in this.tempData) {
+          this[key] = this.$deepClone(this.tempData[key])
+        }
+      })
+    },
+    loadJson() {
+      this.easyFlowVisible = false
+      this.$nextTick(() => {
+        this.easyFlowVisible = true
+        this.dataReload()
+      })
+    },
+    dataReload() {
+      this.loadEasyFlowFinish = false
+      const ins = this.jPIns
+
+      this.initPlumb()
+      return
+      ins.batch(() => {
+        this.nodeList.forEach((item) => {
+          const { nodeId } = item || {}
+          console.log('nodeId', nodeId)
+          // ins.remove(nodeId)
+          ins.makeSource(nodeId, NodeSetting)
+          ins.makeTarget(nodeId, NodeSetting)
+          ins.draggable(nodeId, {
+            containment: 'parent'
+          })
+        })
+        this.connectionAll()
+        this.InitAllNode()
+      })
+    },
     editNode({ nodeId, x, y }) {
       // 重复点击同一元素
       if (this.selectNode.nodeId == nodeId) return
@@ -170,8 +239,9 @@ export default {
         ...NodeSetting,
         Container: 'flowContent' // 选择器id
       })
-      const ins = this.jPIns
-      ins.batch(() => {
+      this.$nextTick(() => {
+        const ins = this.jPIns
+        // ins.batch(() => {
         this.nodeList.forEach((item) => {
           const { nodeId } = item || {}
           ins.makeSource(nodeId, NodeSetting)
@@ -182,6 +252,7 @@ export default {
         })
         this.connectionAll()
         this.InitAllNode()
+        // })
       })
     },
     InitAllNode() {
@@ -355,6 +426,8 @@ export default {
       ins.ready(() => { // 入口
         // 导入默认配置
         ins.importDefaults({ ...InstanceSetting, ...NodeSetting, Container: 'flowContent' })
+        // 会使整个jsPlumb立即重绘。
+        ins.setSuspendDrawing(false, true)
         // 增加移动事件
         ins.bind('beforeDrop', this.handleBeforeDrop)
         // 点击线
@@ -365,7 +438,6 @@ export default {
         ins.bind('connection', this.addLine)
         // 删除连线
         ins.bind('connectionDetached', this.handleConnectionDetached)
-
         for (let i = 0; i < this.connList.length; i++) {
           const conn = this.connList[i]
           const { sourceNodeId, targetNodeId, label } = conn || {}
