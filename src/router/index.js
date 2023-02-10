@@ -8,6 +8,7 @@ import BaseJsplumb from '@/views/base-jsplumb'
 import JsplumbGroup from '@/views/jsplumb-group'
 import EditJsplumb from '@/views/edit-jsplumb'
 import FlowDesigner from '@/views/flow-designer'
+import FlowRedo from '@/views/flow-redo'
 
 const routes = [
   {
@@ -34,7 +35,13 @@ const routes = [
     path: '/flow-designer',
     name: 'FlowDesigner',
     component: FlowDesigner
+  },
+  {
+    path: '/flow-redo',
+    name: 'FlowRedo',
+    component: FlowRedo
   }
+
 ]
 
 export default routes

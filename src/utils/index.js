@@ -1,8 +1,8 @@
 // 深拷贝
 export function deepClone(newObj, sourceObj) {
   for (const k in sourceObj) {
-    if (typeof sourceObj[k] === 'object') {
-      newObj[k] = {}
+    if (typeof sourceObj[k] == 'object') {
+      newObj[k] = (sourceObj[k].constructor === Array) ? [] : {}
       deepClone(newObj[k], sourceObj[k])
     } else {
       newObj[k] = sourceObj[k]
