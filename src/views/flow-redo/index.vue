@@ -1,6 +1,6 @@
 <template>
   <div class="demo3">
-    <ToolsMenu ref="ToolsMenu" class="tools-menu" @setDragMenu="setDragMenu">
+    <ToolsMenu ref="ToolsMenu" class="tools-menu" :active-menu="activeMenu" @setDragMenu="setDragMenu">
       <div class="tool-item" :class="{active:!isConnect}">
         <div class="tool-item-icon" title="鼠标工具" @click="isConnect=false"><i class="el-icon-rank " /></div>
       </div>
@@ -9,8 +9,9 @@
       </div>
     </ToolsMenu>
     <!-- 操作区 -->
-    <div v-if="easyFlowVisible" class="draw-area">
+    <div class="draw-area">
       <div
+        v-if="easyFlowVisible"
         id="flowContent"
         @drop="drop($event)"
         @dragover="allowDrop($event)"
@@ -21,6 +22,7 @@
           :key="item.nodeId"
           :select-node="selectNode"
           :node="item"
+          :class="item.class"
           :style="{
             top: item.y + 'px',
             left: item.x + 'px'
@@ -99,7 +101,7 @@ export default {
       ],
       currentConnect: null, // 选中的线，jsPlumb对象
       selectLine: {}, // 选中的数组中的线
-      curDragMenu: {}, // 背选中拖拽的菜单
+      activeMenu: {}, // 背选中拖拽的菜单
       selectNode: {}, // 被选中的节点
       tempData: {} // 暂存当前，deepclone
     }
@@ -115,6 +117,9 @@ export default {
     })
   },
   methods: {
+    setDragMenu(item) {
+      this.activeMenu = item
+    },
     // jsPlumb实例创建
     initPlumb() {
       this.jPIns = this.$jsPlumb.getInstance({
@@ -552,7 +557,8 @@ export default {
         nodeId: getUUID(),
         name: '新元素',
         y: event.offsetY,
-        x: event.offsetX
+        x: event.offsetX,
+        ...this.activeMenu
       }
       this.nodeList.push(temp)
       this.$nextTick(() => {
@@ -594,6 +600,19 @@ export default {
   &.active{
   background: #f56c6c;
 
+  }
+}
+.demo3{
+  .is-start{
+    background-color: rgb(120, 220, 107);
+    border-radius: 50%;
+    min-width: 30px;
+  }
+  .is-step{
+    background-color: rgb(107, 171, 220);
+    border-radius: 10px;
+    min-width: 70px;
+    line-height: 40px;
   }
 }
 

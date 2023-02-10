@@ -9,8 +9,8 @@
     <div class="tool-card">
       <div class="card-header">节点</div>
       <div class="card-body">
-        <div v-for="(item,index) in nodeList" :key="index" draggable="true" class="tool-item" @dragstart="drag(item)">
-          <div class="node-item" :class="item.class" />
+        <div v-for="(item,index) in nodeList" :key="index" draggable="true" class="tool-item" :class="[activeMenu.type==item.type?'active':'']" @dragstart="drag(item)">
+          <div class="node-item" :class="[item.class]" />
           <div>{{ item.title }}</div>
         </div>
       </div>
@@ -20,6 +20,12 @@
 
 <script>
 export default {
+  props: {
+    activeMenu: {
+      type: Object,
+      default() { return {} }
+    }
+  },
   data() {
     return {
       nodeList: [{
@@ -27,13 +33,13 @@ export default {
         img: '',
         icon: '',
         title: '开始',
-        type: ''
+        type: '1'
       }, {
         class: 'is-step',
         img: '',
         icon: '',
         title: '过程',
-        type: ''
+        type: '3'
       }]
     }
   },
@@ -90,15 +96,5 @@ export default {
   line-height: 30px;
 
 }
-.is-start{
-  background-color: rgb(120, 220, 107);
-  border-radius: 50%;
-  width: 30px;
-}
-.is-step{
-  background-color: rgb(107, 171, 220);
-  border-radius: 10px;
-  width: 70px;
-  line-height: 40px;
-}
+
 </style>
